@@ -1,20 +1,22 @@
 package fr.epita.android.hellogames
 
+import CustomRecyclerAdapter
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.list_item.view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,21 +24,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val fcklist = listOf(R.id.view_1, R.id.view_2, R.id.view_3, R.id.view_4)
+        Recycler.setHasFixedSize(true)
 
-        var listGamesUsed : MutableList<GameObject> = mutableListOf()
+        Recycler.layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.VERTICAL, false)
 
-        fun print(dataGames : MutableList<GameObject>) {
-            for (i in 0..3) {
-                val randomNum = dataGames.random()
-                // Test of the get picture ---------------------------------------------------------
-                val toto = randomNum.picture
-                Log.d("TAG", "list of game picture: $toto")
-                // ---------------------------------------------------------------------------------
-                Glide.with(this).load(randomNum.picture).into(findViewById(fcklist[i]))
-                listGamesUsed.add(randomNum)
-                dataGames.remove(randomNum)
-            }
+        val myItemClickListener = View.OnClickListener { rowView ->
+            val explicitIntent = Intent(this, Game_Details_Activity::class.java)
+            val nameGame = rowView.name_game.text
+            Log.d("TAG", "$nameGame is selected")
+            val Toast = Toast.makeText(this@MainActivity, "$nameGame", Toast.LENGTH_SHORT)
+            Toast.show()
+            explicitIntent.putExtra("ID",rowView.tag as Int)
+            startActivity(explicitIntent)
         }
 
         var dataGames: MutableList<GameObject>
@@ -66,8 +65,7 @@ class MainActivity : AppCompatActivity() {
                         // We got our data !
                         val responseData = response.body()
                         if (responseData != null) {
-                            dataGames = responseData
-                            print(dataGames)
+                            Recycler.adapter = CustomRecyclerAdapter(this@MainActivity, responseData, myItemClickListener)
                         }
                     }
                 }
@@ -75,51 +73,5 @@ class MainActivity : AppCompatActivity() {
         }
 
         service.GetListsGames().enqueue(callback)
-
-        val explicitIntent = Intent(this, Game_Details_Activity::class.java)
-
-        view_1.setOnClickListener( object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                val nameGame = listGamesUsed[0].name
-                Log.d("TAG", "$nameGame is selected")
-                val Toast = Toast.makeText(this@MainActivity, "$nameGame", Toast.LENGTH_SHORT)
-                Toast.show()
-                explicitIntent.putExtra("ID", listGamesUsed[0].id)
-                startActivity(explicitIntent)
-            }
-        })
-
-        view_2.setOnClickListener( object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                val nameGame = listGamesUsed[1].name
-                Log.d("TAG", "$nameGame is selected")
-                val Toast = Toast.makeText(this@MainActivity, "$nameGame", Toast.LENGTH_SHORT)
-                Toast.show()
-                explicitIntent.putExtra("ID", listGamesUsed[1].id)
-                startActivity(explicitIntent)
-            }
-        })
-
-        view_3.setOnClickListener( object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                val nameGame = listGamesUsed[2].name
-                Log.d("TAG", "$nameGame is selected")
-                val Toast = Toast.makeText(this@MainActivity, "$nameGame", Toast.LENGTH_SHORT)
-                Toast.show()
-                explicitIntent.putExtra("ID", listGamesUsed[2].id)
-                startActivity(explicitIntent)
-            }
-        })
-
-        view_4.setOnClickListener( object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                val nameGame = listGamesUsed[3].name
-                Log.d("TAG", "$nameGame is selected")
-                val Toast = Toast.makeText(this@MainActivity, "$nameGame", Toast.LENGTH_SHORT)
-                Toast.show()
-                explicitIntent.putExtra("ID", listGamesUsed[3].id)
-                startActivity(explicitIntent)
-            }
-        })
     }
 }
